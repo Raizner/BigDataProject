@@ -1,0 +1,22 @@
+%YAML:1.0
+calibration_time: "IST 12:48:51 2014 נוב 17 ב\'"
+image_width: 640
+image_height: 480
+board_width: 4
+board_height: 5
+square_size: 5.7000000029802322e-02
+flags: 0
+camera_matrix: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 8.3394649764418020e+01, 0., 2.9907664605794514e+02, 0.,
+       9.2999251432750313e+01, 2.1150742453851743e+02, 0., 0., 1. ]
+distortion_coefficients: !!opencv-matrix
+   rows: 5
+   cols: 1
+   dt: d
+   data: [ -2.1453823855727955e-01, 3.5609271307372924e-02,
+       1.4664436335598263e-01, 1.4805835080190653e-02,
+       1.3465055622580132e-02 ]
+avg_reprojection_error: 2.6293925397769309e+00

@@ -1,0 +1,126 @@
+/*
+ * Triangulate.cpp
+ *
+ *  Created on: Nov 17, 2014
+ *      Author: artyom
+ */
+
+#include "Triangulate.h"
+
+Triangulate::Triangulate() {
+	// TODO Auto-generated constructor stub
+
+}
+
+
+vector<cv::Vec3f> Triangulate::triangulate(Mat cam0P, Mat cam1P, float cam0x, float cam0y, float cam1x, float cam1y, Mat T, Mat Q) {
+
+
+	 cout << "in triangulateP1 :" << cam0P <<endl ;
+	   cout << " int triangulate P2 :" << cam1P << endl;
+/*
+
+
+    cv::Mat pnts3D(1,1,CV_64FC4);
+    cv::Mat cam0pnts(1,1,CV_64FC2);
+    cv::Mat cam1pnts(1,1,CV_64FC2);
+
+    float x = cam0x;
+    float y = cam0y;
+
+    float x2 = cam1x;
+    float y2 = cam1y;
+
+
+
+
+    cam0pnts.at<Vec2d>(0,0)[0] = x;
+    cam0pnts.at<Vec2d>(0,0)[1] = y;
+    cam1pnts.at<Vec2d>(0,0)[0] = x2;
+    cam1pnts.at<Vec2d>(0,0)[1] = y2;
+
+
+    std::vector<cv::Vec3f> surfacePoints, realSurfacePoints;
+
+    unsigned int N = 1;
+    for(int i=0;i<N;i++) {
+        double d, disparity;
+        // since you have stereo vision system in which cameras lays next to
+        // each other on OX axis, disparity is measured along OX axis
+        d = T.at<double>(0,0);
+        disparity = x - x2;
+
+        surfacePoints.push_back(cv::Vec3f(x, y, disparity));
+    }
+
+    cv::perspectiveTransform(surfacePoints, realSurfacePoints, Q);
+
+    cout << realSurfacePoints.at(0)[0] << endl;
+    cout << realSurfacePoints.at(0)[1] << endl;
+    cout << realSurfacePoints.at(0)[2] << endl;;
+
+
+*/
+
+	 cv::Mat pnts3D(1,1,CV_64FC4);
+	    cv::Mat cam0pnts(1,1,CV_64FC2);
+	    cv::Mat cam1pnts(1,1,CV_64FC2);
+
+
+	    cam0pnts.at<Vec2d>(0,0)[0] = cam0x;
+	    cam0pnts.at<Vec2d>(0,0)[1] = cam0y;
+	    cam1pnts.at<Vec2d>(0,0)[0] = cam1x;
+	    cam1pnts.at<Vec2d>(0,0)[1] = cam1y;
+
+	    cv::triangulatePoints( cam0P, cam1P, cam0pnts, cam1pnts, pnts3D );
+
+
+
+	    /*
+
+	    for (int i = 0 ; i <= 3 ; i++){
+	    	pnts3D.at<double>(i,0) = pnts3D.at<double>(i,0)/pnts3D.at<double>(3,0);
+
+	    }
+
+	    cout << "X: " << pnts3D.at<double>(0,0) << endl;
+	    cout << "Y: " << pnts3D.at<double>(1,0) << endl;
+	    cout << "Z: " << pnts3D.at<double>(2,0) << endl;
+	    cout << "4th: " << pnts3D.at<double>(3,0) << endl;
+
+	    */
+
+
+	    std::vector<cv::Vec3f> surfacePoints, realSurfacePoints;
+
+	    unsigned int N = 1;
+	    for(int i=0;i<N;i++) {
+	        double d, disparity;
+	        // since you have stereo vision system in which cameras lays next to
+	        // each other on OX axis, disparity is measured along OX axis
+	        d = T.at<double>(0,0);
+	        disparity = cam0x - cam1x;
+
+	        surfacePoints.push_back(cv::Vec3f(cam0x, cam0y, disparity));
+	    }
+
+	    cv::Vec3f B = cv::Vec3f(cam0x, cam0y, cam0x - cam1x);
+
+	    cv::perspectiveTransform(surfacePoints, realSurfacePoints, Q);
+
+
+
+
+
+
+//	    cv::Mat t = pnts3D.t();
+	//    cv::Mat pnts3DT = cv::Mat( 1, 1, CV_32FC4, t.data );
+//
+	  //  cv::Mat resultPoints;
+	//    cv::convertPointsFromHomogeneous( pnts3DT, resultPoints );
+
+	    std::vector<cv::Vec3f> A;
+
+
+	    return A;
+}

@@ -1,0 +1,18 @@
+/*
+ * calib.cpp
+ *
+ *  Created on: Nov 10, 2014
+ *      Author: artyom
+ */
+
+#include "calib.h"
+
+calib::calib() {
+	// TODO Auto-generated constructor stub
+
+}
+
+calib::~calib() {
+	// TODO Auto-generated destructor stub
+}
+

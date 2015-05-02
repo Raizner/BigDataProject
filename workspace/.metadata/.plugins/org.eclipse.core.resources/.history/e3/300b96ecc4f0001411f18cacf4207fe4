@@ -1,0 +1,119 @@
+/*
+ * capturingPairsImagesFromCam.cpp
+ *
+ *  Created on: Nov 17, 2014
+ *      Author: artyom
+ */
+
+#include "opencv2/calib3d/calib3d.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include <string>
+#include <iostream>
+
+using namespace std;
+
+int main(int argc,char *argv[])
+{
+
+	if(argc<3){
+		cout << "Invalid number of arguments , first argument must be 192.168.1.xxx , second as well " << endl;
+		return 0;
+	}
+	string ip1 = "http://192.168.1.";
+	string ip2 = "http://192.168.1.";
+	ip1 = ip1 + argv[1] + ":8080/?action=stream";
+	ip2 = ip2 + argv[2] + ":8080/?action=stream";
+
+
+ IplImage *frameL = 0;
+ IplImage *frameR = 0;
+
+ CvCapture *captureL = 0;
+ CvCapture *captureR = 0;
+
+ int key = 0;
+ int iFileName = 0;
+ char FileName[10]= "";
+
+ //Initialize left and right camera
+ captureL = cvCaptureFromFile(ip1.c_str());
+ captureR = cvCaptureFromFile(ip2.c_str());
+
+
+ //Always check for valid frame capture.
+ if (!(captureL && captureR))
+ {
+  printf("\nCannot open initialize webcam!\n" );
+
+  //Release CAM Handle.
+  cvReleaseCapture(&captureL);
+  cvReleaseCapture(&captureR);
+  return 0;
+ }
+
+ printf("\nPress 's' to capturing image pairs.\nPress 'q' to quit application\n");
+
+ while( key != 'q' )
+ {
+  //Get a frame
+  frameL = cvQueryFrame(captureL);
+  frameR = cvQueryFrame(captureR);
+
+  //Check for frames
+  if(!(frameL && frameR))
+   break;
+
+  //Display current frame
+
+  cv::Mat frame(frameL, false);
+  cv::Mat frame1(frameR, false);
+/*
+  cv::Mat tempFrame = frame;
+    cv::Mat tempFrame1 = frame1;
+
+    cv::transpose(frame, tempFrame);
+    cv::flip(tempFrame, tempFrame, 0);
+
+    cv::transpose(tempFrame, frame);
+    cv::flip(frame, frame, 0);
+
+    cv::transpose(frame1, tempFrame1);
+    cv::flip(tempFrame1, tempFrame1, 0);
+
+    cv::transpose(tempFrame1, frame1);
+    cv::flip(frame1, frame1, 0);
+*/
+    frameL = new IplImage(frame);
+    frameR = new IplImage(frame1);
+
+  cvShowImage("Left", frameL);
+  cvShowImage("Right", frameR);
+
+  //Exit if user press 'q', and save frame if pressed 's'
+  key = cvWaitKey(1);
+
+
+  if(key == 's')
+  {
+   //Save Left CAM Image.
+   sprintf(FileName, "PedLeft%d.jpg",iFileName);
+   cvSaveImage(FileName, frameL);
+
+   //Save Right CAM Image.
+   sprintf(FileName, "PedRight%d.jpg",iFileName);
+   cvSaveImage(FileName, frameR);
+
+   //Lets update in console on how many images been captured till now.
+   printf("\n %d Pairs Captured", iFileName+1);
+   iFileName++;
+  }
+ }
+
+ //Always perform cleanup.
+ cvReleaseCapture(&captureL);
+ cvReleaseCapture(&captureR);
+ return 0;
+}
+
+

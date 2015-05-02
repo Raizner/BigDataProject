@@ -1,0 +1,256 @@
+//============================================================================
+// Name        : TriangulateHuman.cpp
+// Author      : 
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//============================================================================
+
+#include "Calibration.h"
+#include "Triangulate.h"
+#include <iostream>
+#include <fstream>
+#include <opencv2/opencv.hpp>
+#include <stdio.h>
+#include <string>     // std::string, std::to_string
+using namespace std;
+using namespace cv;
+
+int global = 0;
+
+void printToFile(int leftX, int leftY, int rightX, int rightY, double x, double y , double z){
+
+	string text = (string)" - Left: " + to_string(leftX) + (string)"," + to_string(leftY) + (string)" Right: " + to_string(rightX) + (string)"," + to_string(rightY) + (string)" | Real: " + to_string(x) + (string)"," + to_string(y) + (string)"," + to_string(z) ;
+	   std::ofstream log_file(
+	           "log_file.txt", std::ios_base::out | std::ios_base::app );
+	       log_file << text << std::endl;
+
+/*
+	   	string text1 = to_string(leftX) + (string)" " + to_string(leftY) + (string)" ; ";
+	   	   std::ofstream log_file1(
+	   	           "left.txt", std::ios_base::out | std::ios_base::app );
+	   	log_file1 << text1 << endl << "--" << global << "--" << endl;
+
+	   	cout << "--" << global << "--" << endl;
+	   	    string text2 = to_string(rightX) + (string)" " + to_string(rightY) + (string)" ; ";
+	   	    std::ofstream log_file2(
+	   		           "right.txt", std::ios_base::out | std::ios_base::app );
+	   	 log_file2 << text2 << endl << "--" << global++ << "--" << endl;
+*/
+
+		   	    string text1 = to_string(x);
+		   	    std::ofstream log_file1(
+		   		           "x.txt", std::ios_base::out | std::ios_base::app );
+		   	 log_file1 << text1 << endl;
+
+		   	    string text2 = to_string(y);
+		   	    std::ofstream log_file2(
+		   		           "y.txt", std::ios_base::out | std::ios_base::app );
+		   	 log_file2 << text2 << endl;
+
+		   	    string text3 = to_string(z);
+		   	    std::ofstream log_file3(
+		   		           "z.txt", std::ios_base::out | std::ios_base::app );
+		   	 log_file3 << text3 << endl;
+}
+
+int main() {
+
+	int x, y , z;
+	int leftX = 0;
+	int leftY = 0;
+	int rightX = 0;
+	int rightY = 0;
+	Mat cam0P, cam1P;
+	Mat *Q = new Mat();
+	Mat *T = new Mat();
+	Calibration calibration;
+	Triangulate triangulation;
+	if (true) {
+		vector<Mat> PandP;
+		string filename = "stereo.xml";
+		PandP = calibration.Calibrate(filename, 5, 4, T, Q);
+		cam0P = PandP.at(0);
+		cam1P = PandP.at(1);
+
+
+	}
+
+
+
+    VideoCapture cap("/home/artyom/Dropbox/BigData/workspace/TriangulateHuman/Debug/out.avi");
+           /*
+           cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+           cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+               */
+           if (!cap.isOpened())
+               return -1;
+
+           Mat img;
+
+
+         VideoCapture cap1("/home/artyom/Dropbox/BigData/workspace/TriangulateHuman/Debug/out1.avi");
+
+           //cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+           //cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+
+           if (!cap1.isOpened())
+               return -1;
+
+           Mat img1;
+
+           string Pos = "";
+           HOGDescriptor hog;
+           hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+           //string posPoint = "";
+           string posRect ="";
+           string posRect2 ="";
+           bool onceOnly = true;
+           while (true)
+           {
+               cap >> img;
+              cap1 >> img1;
+
+              /*
+
+              Mat tempFrame = img;
+              Mat tempFrame1 = img1;
+
+              cv::transpose(img, tempFrame);
+              cv::flip(tempFrame, tempFrame, 0);
+
+              cv::transpose(tempFrame, img);
+              cv::flip(img, img, 0);
+
+              cv::transpose(img1, tempFrame1);
+              cv::flip(tempFrame1, tempFrame1, 0);
+
+              cv::transpose(tempFrame1, img1);
+              cv::flip(img1, img1, 0);
+
+			*/
+
+               if (!img.data)
+                   continue;
+
+               vector<Rect> found, found_filtered;
+               vector<Rect> found1, found_filtered1;
+               hog.detectMultiScale(img, found, 0, Size(8,8), Size(32,32), 1.05, 2);
+               hog.detectMultiScale(img1, found1, 0, Size(8,8), Size(32,32), 1.05, 2);
+               //hog.detect(img, found1, 0, Size(8,8), Size(0,0));
+
+               size_t i, j;
+
+
+
+               for (i=0; i<found.size(); i++)
+               {
+                   Rect r = found[i];
+                   for (j=0; j<found.size(); j++)
+                       if (j!=i && (r & found[j])==r)
+                           break;
+                   if (j==found.size())
+                       found_filtered.push_back(r);
+               }
+               for (i=0; i<found_filtered.size(); i++)
+               {
+                   Rect r = found_filtered[i];
+                   if (r.x > 0 && r.x < 500){
+					   r.x += cvRound(r.width*0.1);
+					   r.width = cvRound(r.width*0.8);
+					   r.y += cvRound(r.height*0.06);
+					   r.height = cvRound(r.height*0.9);
+					   leftX = r.x;
+					   leftY = r.y;
+					   string x = to_string(r.x);
+					   string y = to_string(r.y);
+					   posRect = "Pos: x:" + x+ " y: " + y;
+
+					   rectangle(img, r.tl(), r.br(), cv::Scalar(0,255,0), 2);
+                   }
+               }
+
+
+
+
+               for (i=0; i<found1.size(); i++)
+               {
+                   Rect r = found1[i];
+                   for (j=0; j<found1.size(); j++)
+                       if (j!=i && (r & found1[j])==r)
+                           break;
+                   if (j==found1.size())
+                       found_filtered1.push_back(r);
+               }
+               for (i=0; i<found_filtered1.size(); i++)
+               {
+
+            	   Rect r = found_filtered1[i];
+            	   if (r.x > 0 && r.x < 500){
+					   r.x += cvRound(r.width*0.1);
+					   r.width = cvRound(r.width*0.8);
+					   r.y += cvRound(r.height*0.06);
+					   r.height = cvRound(r.height*0.9);
+					   rightX = r.x;
+					   rightY = r.y;
+
+					   string x = to_string(r.x);
+					   string y = to_string(r.y);
+					   posRect2 = "Pos: x:" + x+ " y: " + y;
+
+					   rectangle(img1, r.tl(), r.br(), cv::Scalar(0,255,0), 2);
+            	   }
+               }
+
+
+               int number  = 5;
+               char text[255];
+               sprintf(text, "Score %d", (int)number);
+
+               CvFont font;
+               double hScale=1.0;
+               double vScale=1.0;
+               int    lineWidth=1;
+               cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX|CV_FONT_ITALIC, hScale,vScale,0,lineWidth);
+
+               IplImage* img00 = new IplImage(img);
+               IplImage* img11 = new IplImage(img1);
+
+               char* p = new char[posRect.length()+1];
+
+               memcpy(p, posRect.c_str(), posRect.length()+1);
+
+               cvPutText(img00, p, cvPoint(200,400), &font, cvScalar(0,255,0));
+
+               char* p2 = new char[posRect2.length()+1];
+               memcpy(p2, posRect2.c_str(), posRect2.length()+1);
+               cvPutText(img11, p2, cvPoint(200,300), &font, cvScalar(255,255,255));
+
+
+               vector<double> realXYZ;
+
+               realXYZ = triangulation.triangulate(cam0P, cam1P, leftX, leftY, rightX, rightY, *T, *Q );
+               /*Debuggining purpose */
+
+
+               //printToFile(leftX, leftY,rightX, rightY, realXYZ.at(0)[0], realXYZ.at(0)[1], realXYZ.at(0)[2] );
+
+               printToFile(leftX, leftY,rightX, rightY, realXYZ.at(0), realXYZ.at(1), realXYZ.at(2));
+
+
+               imshow("video capture", img);
+               imshow("video capture2", img1);
+
+               if (waitKey(1) >= 0)
+                   break;
+
+           }
+
+           namedWindow("video capture", CV_WINDOW_AUTOSIZE);
+
+
+
+
+	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	return 0;
+}

@@ -1,0 +1,17 @@
+/*
+ * calib.h
+ *
+ *  Created on: Nov 10, 2014
+ *      Author: artyom
+ */
+
+#ifndef CALIB_H_
+#define CALIB_H_
+
+class calib {
+public:
+	calib();
+	virtual ~calib();
+};
+
+#endif /* CALIB_H_ */

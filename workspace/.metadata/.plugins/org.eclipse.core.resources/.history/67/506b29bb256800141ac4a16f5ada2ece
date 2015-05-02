@@ -1,0 +1,137 @@
+
+
+    #include <iostream>
+    #include <opencv2/opencv.hpp>
+    #include <stdio.h>
+    #include <string>     // std::string, std::to_string
+
+
+    using namespace std;
+    using namespace cv;
+
+    int main (int argc, const char * argv[])
+    {
+        VideoCapture cap(1);
+        /*
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+            */
+        if (!cap.isOpened())
+            return -1;
+
+        Mat img;
+
+
+        VideoCapture cap1(1);
+
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+
+        if (!cap1.isOpened())
+            return -1;
+
+        Mat img2;
+
+        string Pos = "";
+        HOGDescriptor hog;
+        hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+        string posPoint = "";
+        string posRect ="";
+        bool onceOnly = true;
+        while (true)
+        {
+            cap >> img;
+            cap1 >> img2;
+
+            if (!img.data)
+                continue;
+
+            vector<Rect> found, found_filtered;
+            vector<Point> found1, found_filtered1;
+            hog.detectMultiScale(img, found, 0, Size(8,8), Size(32,32), 1.05, 2);
+            hog.detect(img, found1, 0, Size(8,8), Size(0,0));
+
+            size_t i, j;
+
+
+
+            for (i = 0 ; i < found1.size(); i++){
+
+                    Point tempPoint = found1[i];
+
+                Rect r ;
+                if (tempPoint.x > 0 && tempPoint.y > 0) {
+                r.x += tempPoint.x;
+                r.y += tempPoint.y;
+
+                r.width = 10;
+                r.height = 10;
+                    rectangle(img, r.tl(), r.br(), cv::Scalar(255,0,0), 2);
+                string x = to_string(r.x);
+                string y = to_string(r.y);
+                posPoint = "Pos: x:" + x+ " y: " + y;
+                }
+
+
+            }
+
+            for (i=0; i<found.size(); i++)
+            {
+                Rect r = found[i];
+                for (j=0; j<found.size(); j++)
+                    if (j!=i && (r & found[j])==r)
+                        break;
+                if (j==found.size())
+                    found_filtered.push_back(r);
+            }
+            for (i=0; i<found_filtered.size(); i++)
+            {
+                Rect r = found_filtered[i];
+                r.x += cvRound(r.width*0.1);
+                r.width = cvRound(r.width*0.8);
+                r.y += cvRound(r.height*0.06);
+                r.height = cvRound(r.height*0.9);
+
+                string x = to_string(r.x);
+                string y = to_string(r.y);
+                posRect = "Pos: x:" + x+ " y: " + y;
+
+                rectangle(img, r.tl(), r.br(), cv::Scalar(0,255,0), 2);
+            }
+
+
+            int number  = 5;
+            char text[255];
+            sprintf(text, "Score %d", (int)number);
+
+            CvFont font;
+            double hScale=1.0;
+            double vScale=1.0;
+            int    lineWidth=1;
+            cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX|CV_FONT_ITALIC, hScale,vScale,0,lineWidth);
+
+            IplImage* img1 = new IplImage(img);
+
+            char* p = new char[posRect.length()+1];
+
+            memcpy(p, posRect.c_str(), posRect.length()+1);
+
+            cvPutText(img1, p, cvPoint(200,400), &font, cvScalar(0,255,0));
+
+            char* p2 = new char[posPoint.length()+1];
+            memcpy(p2, posPoint.c_str(), posPoint.length()+1);
+            cvPutText(img1, p2, cvPoint(200,430), &font, cvScalar(255,255,255));
+
+            imshow("video capture", img);
+            imshow("video capture2", img2);
+
+            if (waitKey(1) >= 0)
+                break;
+
+        }
+
+        namedWindow("video capture", CV_WINDOW_AUTOSIZE);
+
+        return 0;
+    }
+

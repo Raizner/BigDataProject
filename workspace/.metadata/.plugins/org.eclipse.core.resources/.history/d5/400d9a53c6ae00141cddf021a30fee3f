@@ -1,0 +1,46 @@
+#include <iostream>
+#include <string>
+#include <boost/thread.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
+#include <boost/atomic.hpp>
+
+using namespace std;
+
+unsigned int random_number=0;
+boost::shared_mutex mutex;
+
+void PrintHello()
+{
+   cout << "Hello World! Thread ID "<< endl;
+}
+
+
+void AddNumber(){
+	while(true){
+		boost::unique_lock<boost::shared_mutex> lock(mutex);
+		random_number++;
+		lock.unlock();
+	}
+
+	//random_numbers.push_back("Hello");
+
+}
+
+void GetNumber(){
+
+
+}
+
+int main(int argc, char* argv[])
+{
+	boost::thread producer_thread(AddNumber);
+	//boost::thread consumer_thread(GetNumber);
+	while(true)
+	{
+			boost::unique_lock<boost::shared_mutex> lock(mutex);
+			cout<<"The number is :"<< to_string(random_number) << endl;
+			lock.unlock();
+	}
+	return 0;
+}
